@@ -26,12 +26,17 @@ public class FlyWheel extends SubsystemBase {
   boolean flyWheelOn = false;
   double speed = 0;
   double initialTime;
+  boolean achievedInitialSpeed = false;
+  boolean recovery = false;
+  ArrayList<Double> timesToRecover = new ArrayList<>();
   public FlyWheel() {
     flyWheel.configFactoryDefault();
     flyWheel.setInverted(false);
-    flyWheel.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+    flyWheel.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute);
     PID.setSetpoint(0.0);
     PID.setTolerance(0.5);
+    timer.reset();
+    resetEncoder();
   }
 
  
@@ -55,23 +60,35 @@ public class FlyWheel extends SubsystemBase {
     return timer.get();
   }
 
-  public void resetTimer(){
-    timer.reset();
-  }
-
   public void updateSpeed(double newSpeed){
     //new speed in rpm
     speed = newSpeed;
   }
 
+  public void checkRecovery(double currRPM){
+    if(Math.abs(currRPM - speed) > 20){
+      recovery = true;
+      timer.start();
+    }
+  }
+
+  
+
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("fly wheel rpm: ", getRPM());
-    /*
+    double currRPM = getRPM();
+    SmartDashboard.putNumber("fly wheel rpm: ", currRPM);
+    SmartDashboard.putNumber("current goal: ", PID.getSetpoint());
     SmartDashboard.putNumber("current time: ", getTime());
     SmartDashboard.putNumber("Time to get up to speed: ", initialTime);
-    
+    for(int i = 0; i < timesToRecover.size(); i ++){
+      String shotNumber = "Shot ";
+      shotNumber = shotNumber + i + ": ";
+      SmartDashboard.putNumber(shotNumber, timesToRecover.get(i));
+    }
+
     setSpeed(speed);
+
     if(RobotContainer.getJoystick().getRawButtonPressed(2)){
       updateSpeed(240);
       if(flyWheelOn = false){
@@ -79,14 +96,36 @@ public class FlyWheel extends SubsystemBase {
         timer.start();
       }
     }
-    if(Math.abs(getRPM() - speed) < 5){
-      
+
+    if(achievedInitialSpeed == false){
+      if(Math.abs(currRPM - speed) < 5){
+        achievedInitialSpeed = true;
+        initialTime = timer.get();
+        timer.stop();
+      }
     }
 
-    */
+    if(recovery){
+      if(Math.abs(currRPM - speed) < 5){
+        recovery = false;
+        timesToRecover.add(timer.get());
+        timer.stop();
+      }
+    }
+    
+    checkRecovery(currRPM);
+
+    
+
+
+    
+
+
+    /* 
     if(RobotContainer.getJoystick().getRawButtonPressed(2)){
       setSpeed(240);
     }
+    */
     // This method will be called once per scheduler run
   }
 }
