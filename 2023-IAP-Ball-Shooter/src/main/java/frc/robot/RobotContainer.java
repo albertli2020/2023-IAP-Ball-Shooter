@@ -4,14 +4,34 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.FeedWheel;
+import frc.robot.subsystems.FlyWheel;
 
 public class RobotContainer {
+  private static Joystick joystick;
+  private final static FeedWheel feedWheel = new FeedWheel();
+  private final static FlyWheel flyWheel = new FlyWheel();
+
   public RobotContainer() {
+    joystick = new Joystick(Constants.joystickPort);
+    
     configureBindings();
   }
 
+  public FeedWheel getFeedWheel(){
+    return feedWheel;
+  }
+
+  public FlyWheel getFlyWheel(){
+    return flyWheel;
+  }
+
+  public static Joystick getJoystick(){
+    return joystick;
+  }
   private void configureBindings() {}
 
   public Command getAutonomousCommand() {
