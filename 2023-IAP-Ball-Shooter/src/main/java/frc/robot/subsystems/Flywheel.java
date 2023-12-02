@@ -98,7 +98,7 @@ public class FlyWheel extends SubsystemBase {
     }
 
     if(achievedInitialSpeed == false){
-      if(Math.abs(currRPM - speed) < 5){
+      if(PID.atSetpoint()){
         achievedInitialSpeed = true;
         initialTime = timer.get();
         timer.stop();
@@ -106,13 +106,13 @@ public class FlyWheel extends SubsystemBase {
     }
 
     if(recovery){
-      if(Math.abs(currRPM - speed) < 5){
+      if(PID.atSetpoint()){
         recovery = false;
         timesToRecover.add(timer.get());
         timer.stop();
       }
     }
-    
+
     checkRecovery(currRPM);
 
     
